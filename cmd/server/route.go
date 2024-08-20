@@ -37,9 +37,13 @@ func SetupRouter(handler *api.HTTPHandler, repository ports.Repository) *gin.Eng
 	user.Use(middleware.AuthorizeUser(repository.FindUserByEmail, repository.TokenInBlacklist))
 	{
 		user.GET("/allproducts", handler.GetAllProducts)
+		user.GET("/getproduct/:id", handler.GetProductByID)
 		user.POST("/logout", handler.Logout)
 		user.POST("/addtocart", handler.AddProductToCart)
-		user.GET("/getcart", handler.GetProductsInCart)
+		user.PUT("/editcart", handler.EditCart)
+		user.DELETE("/deletefromcart/:id", handler.DeleteProductFromCart)
+		user.GET("/vieworders", handler.ViewOrders)
+		user.GET("/getcart", handler.ViewCart)
 		user.POST("/placeorder", handler.PlaceOrder)
 	}
 

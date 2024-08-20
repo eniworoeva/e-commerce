@@ -155,7 +155,7 @@ func (u *HTTPHandler) AddProductToCart(c *gin.Context) {
 	}
 
 	//check if product quantity is less
-	if product.Stock < cart.Quantity {
+	if cart.Quantity > product.Quantity {
 		util.Response(c, "Product quantity is less", 400, nil, nil)
 		return
 	}
@@ -171,7 +171,7 @@ func (u *HTTPHandler) AddProductToCart(c *gin.Context) {
 }
 
 // get all products in cart
-func (u *HTTPHandler) GetProductsInCart(c *gin.Context) {
+func (u *HTTPHandler) ViewCart(c *gin.Context) {
 	//get user id from context
 	user, err := u.GetUserFromContext(c)
 	if err != nil {
@@ -179,7 +179,7 @@ func (u *HTTPHandler) GetProductsInCart(c *gin.Context) {
 		return
 	}
 
-	cart, err := u.Repository.GetCartByUserID(user.ID)
+	cart, err := u.Repository.GetCartsByUserID(user.ID)
 	if err != nil {
 		util.Response(c, "Internal server error", 500, err.Error(), nil)
 		return
@@ -260,7 +260,7 @@ func (u *HTTPHandler) EditCart(c *gin.Context) {
 	}
 
 	// Get cart by user id
-	shoppingCart, err := u.Repository.GetCartItemByUserID(user.ID)
+	shoppingCart, err := u.Repository.GetCartItemByProductID(cart.ProductID)
 	if err != nil {
 		util.Response(c, "Cart not found", 404, err.Error(), nil)
 		return
@@ -274,7 +274,7 @@ func (u *HTTPHandler) EditCart(c *gin.Context) {
 	}
 
 	// Check if product quantity is less
-	if product.Stock < cart.Quantity {
+	if product.Quantity < cart.Quantity {
 		util.Response(c, "Product quantity is less", 400, nil, nil)
 		return
 	}
@@ -294,29 +294,28 @@ func (u *HTTPHandler) EditCart(c *gin.Context) {
 // delete product from cart
 func (u *HTTPHandler) DeleteProductFromCart(c *gin.Context) {
 	// Get user id from context
-	user, err := u.GetUserFromContext(c)
+	_, err := u.GetUserFromContext(c)
 	if err != nil {
 		util.Response(c, "Error getting user from context", 500, err.Error(), nil)
 		return
 	}
 
-	// Bind request to struct
-	var cart *models.IndividualItemInCart
-	if err := c.ShouldBind(&cart); err != nil {
-		util.Response(c, "invalid request", 400, err.Error(), nil)
+	// Get product by id
+	productID := c.Param("id")
+	productIDInt, err := strconv.Atoi(productID)
+	if err != nil {
+		util.Response(c, "Invalid product ID", 400, err.Error(), nil)
 		return
 	}
 
 	// Validate request
-	_, err = u.Repository.GetProductByID(cart.ProductID)
+	shoppingCart, err := u.Repository.GetCartItemByProductID(uint(productIDInt))
 	if err != nil {
 		util.Response(c, "Product not found", 404, err.Error(), nil)
 		return
 	}
 
-	// Delete product from cart
-	cart.UserID = user.ID
-	err = u.Repository.DeleteProductFromCart(cart)
+	err = u.Repository.DeleteProductFromCart(shoppingCart)
 	if err != nil {
 		util.Response(c, "Internal server error", 500, err.Error(), nil)
 		return
@@ -351,7 +350,7 @@ func (u *HTTPHandler) GetProductByID(c *gin.Context) {
 	}, nil)
 }
 
-//view orders
+// view orders
 func (u *HTTPHandler) ViewOrders(c *gin.Context) {
 	// Get user id from context
 	user, err := u.GetUserFromContext(c)
