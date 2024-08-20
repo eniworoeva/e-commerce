@@ -150,3 +150,12 @@ func (p *Postgres) GetOrdersByUserID(userID uint) ([]*models.Order, error) {
 	}
 	return orders, nil
 }
+
+func (p *Postgres) GetCartItemByUserID(userID uint) (*models.IndividualItemInCart, error) {
+	cart := &models.IndividualItemInCart{}
+
+	if err := p.DB.Where("ID = ?", userID).First(&cart).Error; err != nil {
+		return nil, err
+	}
+	return cart, nil
+}

@@ -259,6 +259,13 @@ func (u *HTTPHandler) EditCart(c *gin.Context) {
 		return
 	}
 
+	// Get cart by user id
+	shoppingCart, err := u.Repository.GetCartItemByUserID(user.ID)
+	if err != nil {
+		util.Response(c, "Cart not found", 404, err.Error(), nil)
+		return
+	}
+
 	// Validate request
 	product, err := u.Repository.GetProductByID(cart.ProductID)
 	if err != nil {
@@ -274,6 +281,8 @@ func (u *HTTPHandler) EditCart(c *gin.Context) {
 
 	// Update cart
 	cart.UserID = user.ID
+	cart.ID = shoppingCart.ID
+
 	err = u.Repository.AddProductToCart(cart)
 	if err != nil {
 		util.Response(c, "Internal server error", 500, err.Error(), nil)
