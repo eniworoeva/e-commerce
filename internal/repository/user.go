@@ -77,16 +77,6 @@ func (p *Postgres) AddProductToCart(cart *models.IndividualItemInCart) error {
 	return nil
 }
 
-// // Get products in cart but if orderid is null return error
-func (p *Postgres) GetCartByUserID(userID uint) (*models.IndividualItemInCart, error) {
-	cart := &models.IndividualItemInCart{}
-
-	if err := p.DB.Where("user_id = ?", userID).First(&cart).Error; err != nil {
-		return nil, err
-	}
-	return cart, nil
-}
-
 // Get all carts by user ID
 func (p *Postgres) GetCartsByUserID(userID uint) ([]*models.IndividualItemInCart, error) {
 	var cartItems []*models.IndividualItemInCart

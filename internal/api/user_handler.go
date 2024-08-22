@@ -172,20 +172,53 @@ func (u *HTTPHandler) AddProductToCart(c *gin.Context) {
 
 // get all products in cart
 func (u *HTTPHandler) ViewCart(c *gin.Context) {
-	//get user id from context
+	// Get user ID from context
 	user, err := u.GetUserFromContext(c)
 	if err != nil {
 		util.Response(c, "Error getting user from context", 500, err.Error(), nil)
 		return
 	}
 
-	cart, err := u.Repository.GetCartsByUserID(user.ID)
+	// Get cart items by user ID
+	cartItems, err := u.Repository.GetCartsByUserID(user.ID)
 	if err != nil {
 		util.Response(c, "Internal server error", 500, err.Error(), nil)
 		return
 	}
-	util.Response(c, "Products fetched", 200, gin.H{
-		"cart": cart,
+
+	// If cart is empty, return early
+	if len(cartItems) == 0 {
+		util.Response(c, "Your cart is empty", 404, nil, nil)
+		return
+	}
+
+	// Prepare the response structure
+	var cartTotal models.CartTotal
+	cartTotal.Cart = make([]*models.CartItem, len(cartItems))
+
+	// Calculate the total price and prepare the cart items
+	var total float64
+	for i, cartItem := range cartItems {
+		product, err := u.Repository.GetProductByID(cartItem.ProductID)
+		if err != nil {
+			util.Response(c, "Error fetching product details", 500, err.Error(), nil)
+			return
+		}
+		cartTotal.Cart[i] = &models.CartItem{
+			CartID:   cartItem.ID,
+			Product:  product,
+			Quantity: cartItem.Quantity,
+		}
+		total += float64(cartItem.Quantity) * product.Price
+	}
+
+	// Set the total price
+	cartTotal.Total = total
+
+	// Return the cart items and total price
+	util.Response(c, "Cart fetched successfully", 200, gin.H{
+		"cart":  cartTotal.Cart,
+		"total": cartTotal.Total,
 	}, nil)
 }
 
@@ -214,7 +247,7 @@ func (u *HTTPHandler) PlaceOrder(c *gin.Context) {
 			util.Response(c, "Error fetching product details", 500, err.Error(), nil)
 			return
 		}
-		if cartItem.Quantity > product.Stock {
+		if cartItem.Quantity > product.Quantity {
 			util.Response(c, "Product out of stock", 400, "Product is out of stock", nil)
 			return
 		}
@@ -230,7 +263,7 @@ func (u *HTTPHandler) PlaceOrder(c *gin.Context) {
 		UserID: user.ID,
 		Items:  orderItems,
 		Total:  total,
-		Status: "pending",
+		Status: "PLACED",
 	}
 
 	// Save order and clear cart within a transaction
@@ -364,6 +397,7 @@ func (u *HTTPHandler) ViewOrders(c *gin.Context) {
 		util.Response(c, "Internal server error", 500, err.Error(), nil)
 		return
 	}
+
 	util.Response(c, "Orders fetched", 200, gin.H{
 		"orders": orders,
 	}, nil)

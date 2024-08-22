@@ -18,4 +18,3 @@ func main() {
 	//Runs the app
 	server.Run(db, env.Port)
 }
-
