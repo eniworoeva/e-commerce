@@ -125,3 +125,52 @@ func (u *HTTPHandler) CreateProduct(c *gin.Context) {
 	}
 	util.Response(c, "Product created", 200, nil, nil)
 }
+
+// list orders
+func (u *HTTPHandler) ListOrders(c *gin.Context) {
+	// Get seller ID from context (assuming you store it there after authentication)
+	seller, err := u.GetSellerFromContext(c)
+	if err != nil {
+		util.Response(c, "Error getting seller from context", 500, err.Error(), nil)
+		return
+	}
+
+	// Fetch all products belonging to the seller
+	var products []models.Product
+	if err := u.Repository.GetProductsBySellerID(seller.ID, &products); err != nil {
+		util.Response(c, "Error fetching seller's products", 500, err.Error(), nil)
+		return
+	}
+
+	// Collect all order IDs associated with the seller's products
+	var orders []models.Order
+	for _, product := range products {
+		var productOrders []models.Order
+		if err := u.Repository.GetOrdersByProductID(product.ID, &productOrders); err != nil {
+			util.Response(c, "Error fetching orders for product", 500, err.Error(), nil)
+			return
+		}
+		orders = append(orders, productOrders...)
+	}
+
+	// Remove duplicate orders (optional, depending on the structure of your database queries)
+	uniqueOrders := removeDuplicateOrders(orders)
+
+	// Send the response
+	util.Response(c, "Orders fetched successfully", 200, uniqueOrders, nil)
+}
+
+// Helper function to remove duplicate orders
+func removeDuplicateOrders(orders []models.Order) []models.Order {
+	seen := make(map[uint]bool)
+	var uniqueOrders []models.Order
+
+	for _, order := range orders {
+		if _, exists := seen[order.ID]; !exists {
+			seen[order.ID] = true
+			uniqueOrders = append(uniqueOrders, order)
+		}
+	}
+
+	return uniqueOrders
+}

@@ -22,4 +22,7 @@ type Repository interface {
 	DeleteProductFromCart(cart *models.IndividualItemInCart) error
 	GetOrdersByUserID(userID uint) ([]*models.Order, error)
 	GetCartItemByProductID(productID uint) (*models.IndividualItemInCart, error)
+	ListOrders(sellerID uint) ([]*models.Order, error)
+	GetProductsBySellerID(sellerID uint, products *[]models.Product) error
+	GetOrdersByProductID(productID uint, orders *[]models.Order) error
 }

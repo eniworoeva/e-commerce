@@ -3,6 +3,7 @@ package repository
 import (
 	"e-commerce/internal/models"
 	"errors"
+	"log"
 )
 
 func (p *Postgres) FindUserByEmail(email string) (*models.User, error) {
@@ -96,31 +97,32 @@ func (p *Postgres) GetCartsByUserID(userID uint) ([]*models.IndividualItemInCart
 
 // create an order
 func (p *Postgres) CreateOrder(order *models.Order) error {
-	// Use a transaction for creating order and clearing cart
 	tx := p.DB.Begin()
 	if err := tx.Error; err != nil {
 		return err
 	}
 
-	// Create the order
+	// Attempt to create the order
 	if err := tx.Create(order).Error; err != nil {
 		tx.Rollback()
+		log.Printf("Error creating order: %v", err) // Add this log
 		return err
 	}
 
 	// Clear the cart
 	if err := tx.Where("user_id = ?", order.UserID).Delete(&models.IndividualItemInCart{}).Error; err != nil {
 		tx.Rollback()
+		log.Printf("Error clearing cart: %v", err) // Add this log
 		return err
 	}
 
 	// Commit the transaction
 	if err := tx.Commit().Error; err != nil {
+		log.Printf("Error committing transaction: %v", err) // Add this log
 		return err
 	}
 
 	return nil
-
 }
 
 // Delete a product from the cart

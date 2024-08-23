@@ -34,3 +34,22 @@ func (p *Postgres) CreateProduct(product *models.Product) error {
 	}
 	return nil
 }
+
+// list orders
+func (p *Postgres) ListOrders(sellerID uint) ([]*models.Order, error) {
+	orders := []*models.Order{}
+
+	if err := p.DB.Where("seller_id = ?", sellerID).Find(&orders).Error; err != nil {
+		return nil, err
+	}
+	return orders, nil
+}
+
+func (p *Postgres) GetProductsBySellerID(sellerID uint, products *[]models.Product) error {
+	return p.DB.Where("seller_id = ?", sellerID).Find(products).Error
+}
+
+func (p *Postgres) GetOrdersByProductID(productID uint, orders *[]models.Order) error {
+	return p.DB.Joins("JOIN order_items ON order_items.order_id = orders.id").
+		Where("order_items.product_id = ?", productID).Find(orders).Error
+}
