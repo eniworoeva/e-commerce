@@ -273,7 +273,7 @@ func (u *HTTPHandler) PlaceOrder(c *gin.Context) {
 	order := &models.Order{
 		UserID: user.ID,
 		Total:  total,
-		Status: "pending",
+		Status: "PLACED",
 		Items:  orderItems,
 	}
 

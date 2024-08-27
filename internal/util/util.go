@@ -1,7 +1,9 @@
 package util
 
 import (
+	"e-commerce/internal/models"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -30,4 +32,28 @@ func HashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hashedPassword), nil
+}
+
+func ConvertStringToUint(s string) (uint, error) {
+	int, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, err
+	}
+	return uint(int), nil
+}
+
+
+// Helper function to remove duplicate orders
+func RemoveDuplicateOrders(orders []models.Order) []models.Order {
+	seen := make(map[uint]bool)
+	var uniqueOrders []models.Order
+
+	for _, order := range orders {
+		if _, exists := seen[order.ID]; !exists {
+			seen[order.ID] = true
+			uniqueOrders = append(uniqueOrders, order)
+		}
+	}
+
+	return uniqueOrders
 }

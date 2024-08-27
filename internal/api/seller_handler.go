@@ -154,23 +154,96 @@ func (u *HTTPHandler) ListOrders(c *gin.Context) {
 	}
 
 	// Remove duplicate orders (optional, depending on the structure of your database queries)
-	uniqueOrders := removeDuplicateOrders(orders)
+	uniqueOrders := util.RemoveDuplicateOrders(orders)
 
 	// Send the response
 	util.Response(c, "Orders fetched successfully", 200, uniqueOrders, nil)
 }
 
-// Helper function to remove duplicate orders
-func removeDuplicateOrders(orders []models.Order) []models.Order {
-	seen := make(map[uint]bool)
-	var uniqueOrders []models.Order
-
-	for _, order := range orders {
-		if _, exists := seen[order.ID]; !exists {
-			seen[order.ID] = true
-			uniqueOrders = append(uniqueOrders, order)
-		}
+// Accept the order
+func (u *HTTPHandler) AcceptOrder(c *gin.Context) {
+	_, err := u.GetSellerFromContext(c)
+	if err != nil {
+		util.Response(c, "Invalid token", 401, err.Error(), nil)
+		return
 	}
 
-	return uniqueOrders
+	orderID := c.Param("id")
+	if orderID == "" {
+		util.Response(c, "Order ID not provided", 400, nil, nil)
+		return
+	}
+
+	//convert id to uint
+	orderIDUint, err := util.ConvertStringToUint(orderID)
+	if err != nil {
+		util.Response(c, "Invalid order ID", 400, err.Error(), nil)
+		return
+	}
+
+	// Get the order from the database
+	order, err := u.Repository.GetOrderByID(orderIDUint)
+	if err != nil {
+		util.Response(c, "Order not found", 404, err.Error(), nil)
+		return
+	}
+
+	//check if order is already accepted
+	if order.Status != "ACCEPTED" {
+		util.Response(c, "Order already accepted", 400, nil, nil)
+		return
+	}
+
+	// Update the order status to accepted
+	order.Status = "ACCEPTED"
+	if err := u.Repository.UpdateOrder(order); err != nil {
+		util.Response(c, "Error updating order", 500, err.Error(), nil)
+		return
+	}
+
+	util.Response(c, "Order accepted", 200, nil, nil)
+}
+
+// Decline the order
+func (u *HTTPHandler) DeclineOrder(c *gin.Context) {
+	_, err := u.GetSellerFromContext(c)
+	if err != nil {
+		util.Response(c, "Invalid token", 401, err.Error(), nil)
+		return
+	}
+
+	orderID := c.Param("id")
+	if orderID == "" {
+		util.Response(c, "Order ID not provided", 400, nil, nil)
+		return
+	}
+
+	//convert id to uint
+	orderIDUint, err := util.ConvertStringToUint(orderID)
+	if err != nil {
+		util.Response(c, "Invalid order ID", 400, err.Error(), nil)
+		return
+	}
+
+	// Get the order from the database
+	order, err := u.Repository.GetOrderByID(orderIDUint)
+	if err != nil {
+		util.Response(c, "Order not found", 404, err.Error(), nil)
+		return
+	}
+
+	//check if order is already declined
+	if order.Status != "DECLINED" {
+		util.Response(c, "Order already declined", 400, nil, nil)
+		return
+	}
+
+	// Update the order status to declined
+	order.Status = "DECLINED"
+	if err := u.Repository.UpdateOrder(order); err != nil {
+		util.Response(c, "Error updating order", 500, err.Error(), nil)
+		return
+	}
+
+	util.Response(c, "Order declined", 200, nil, nil)
 }

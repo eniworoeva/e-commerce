@@ -25,4 +25,6 @@ type Repository interface {
 	ListOrders(sellerID uint) ([]*models.Order, error)
 	GetProductsBySellerID(sellerID uint, products *[]models.Product) error
 	GetOrdersByProductID(productID uint, orders *[]models.Order) error
+	GetOrderByID(orderID uint) (*models.Order, error)
+	UpdateOrder(order *models.Order) error
 }

@@ -53,3 +53,19 @@ func (p *Postgres) GetOrdersByProductID(productID uint, orders *[]models.Order) 
 	return p.DB.Joins("JOIN order_items ON order_items.order_id = orders.id").
 		Where("order_items.product_id = ?", productID).Find(orders).Error
 }
+
+func (p *Postgres) GetOrderByID(orderID uint) (*models.Order, error) {
+	order := &models.Order{}
+
+	if err := p.DB.Where("id = ?", orderID).First(&order).Error; err != nil {
+		return nil, err
+	}
+	return order, nil
+}
+
+func (p *Postgres) UpdateOrder(order *models.Order) error {
+	if err := p.DB.Save(order).Error; err != nil {
+		return err
+	}
+	return nil
+}
