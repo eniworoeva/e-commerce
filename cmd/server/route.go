@@ -36,14 +36,14 @@ func SetupRouter(handler *api.HTTPHandler, repository ports.Repository) *gin.Eng
 	// AuthorizeUser authorizes all the authorized users haldlers
 	user.Use(middleware.AuthorizeUser(repository.FindUserByEmail, repository.TokenInBlacklist))
 	{
-		user.GET("/allproducts", handler.GetAllProducts)
-		user.GET("/getproduct/:id", handler.GetProductByID)
+		user.GET("/product/all", handler.GetAllProducts)
+		user.GET("/product/:id", handler.GetProductByID)
 		user.POST("/logout", handler.Logout)
-		user.POST("/addtocart", handler.AddProductToCart)
-		user.PUT("/editcart", handler.EditCart)
-		user.DELETE("/deletefromcart/:id", handler.DeleteProductFromCart)
-		user.GET("/vieworders", handler.ViewOrders)
-		user.GET("/getcart", handler.ViewCart)
+		user.POST("/cart/add", handler.AddProductToCart)
+		user.PUT("/cart/edit", handler.EditCart)
+		user.DELETE("/cart/delete/:id", handler.DeleteProductFromCart)
+		user.GET("/order/view", handler.ViewOrders)
+		user.GET("/cart/view", handler.ViewCart)
 		user.POST("/placeorder", handler.PlaceOrder)
 	}
 
@@ -56,8 +56,8 @@ func SetupRouter(handler *api.HTTPHandler, repository ports.Repository) *gin.Eng
 	seller.Use(middleware.AuthorizeSeller(repository.FindSellerByEmail, repository.TokenInBlacklist))
 	{
 		seller.POST("/logout", handler.Logout)
-		seller.POST("/addproduct", handler.CreateProduct)
-		seller.GET("/listorders", handler.ListOrders)
+		seller.POST("/product/add", handler.CreateProduct)
+		seller.GET("/orders/list", handler.ListOrders)
 	}
 
 	return router
