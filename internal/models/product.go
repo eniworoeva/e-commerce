@@ -16,5 +16,3 @@ type Product struct {
 	Status      bool    `json:"status"`
 	Orders      []Order `json:"orders" gorm:"many2many:order_items;"`
 }
-
-

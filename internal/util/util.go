@@ -42,7 +42,6 @@ func ConvertStringToUint(s string) (uint, error) {
 	return uint(int), nil
 }
 
-
 // Helper function to remove duplicate orders
 func RemoveDuplicateOrders(orders []models.Order) []models.Order {
 	seen := make(map[uint]bool)

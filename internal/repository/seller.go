@@ -69,3 +69,10 @@ func (p *Postgres) UpdateOrder(order *models.Order) error {
 	}
 	return nil
 }
+
+func (p *Postgres) DeleteProduct(product *models.Product) error {
+	if err := p.DB.Delete(product).Error; err != nil {
+		return err
+	}
+	return nil
+}

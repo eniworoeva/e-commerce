@@ -247,3 +247,46 @@ func (u *HTTPHandler) DeclineOrder(c *gin.Context) {
 
 	util.Response(c, "Order declined", 200, nil, nil)
 }
+
+// delete product
+func (u *HTTPHandler) DeleteProduct(c *gin.Context) {
+	seller, err := u.GetSellerFromContext(c)
+	if err != nil {
+		util.Response(c, "Invalid token", 401, err.Error(), nil)
+		return
+	}
+
+	productID := c.Param("id")
+	if productID == "" {
+		util.Response(c, "Product ID not provided", 400, nil, nil)
+		return
+	}
+
+	//convert id to uint
+	productIDUint, err := util.ConvertStringToUint(productID)
+	if err != nil {
+		util.Response(c, "Invalid product ID", 400, err.Error(), nil)
+		return
+	}
+
+	// Get the product from the database
+	product, err := u.Repository.GetProductByID(productIDUint)
+	if err != nil {
+		util.Response(c, "Product not found", 404, err.Error(), nil)
+		return
+	}
+
+	// Check if the product belongs to the seller
+	if product.SellerID != seller.ID {
+		util.Response(c, "Product does not belong to seller", 400, nil, nil)
+		return
+	}
+
+	// Delete the product
+	if err := u.Repository.DeleteProduct(product); err != nil {
+		util.Response(c, "Error deleting product", 500, err.Error(), nil)
+		return
+	}
+
+	util.Response(c, "Product deleted", 200, nil, nil)
+}
