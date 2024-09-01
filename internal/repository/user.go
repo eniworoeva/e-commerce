@@ -146,8 +146,17 @@ func (p *Postgres) GetOrdersByUserID(userID uint) ([]*models.Order, error) {
 func (p *Postgres) GetCartItemByProductID(productID uint) (*models.IndividualItemInCart, error) {
 	cart := &models.IndividualItemInCart{}
 
-	if err := p.DB.Where("ID = ?", productID).First(&cart).Error; err != nil {
+	if err := p.DB.Where("product_id = ?", productID).First(&cart).Error; err != nil {
 		return nil, err
 	}
 	return cart, nil
+}
+
+func (p *Postgres) GetOrderItemsByOrderID(orderID uint) ([]*models.IndividualItemInCart, error) {
+	var cartItems []*models.IndividualItemInCart
+
+	if err := p.DB.Where("order_id = ?", orderID).Find(&cartItems).Error; err != nil {
+		return nil, err
+	}
+	return cartItems, nil
 }
