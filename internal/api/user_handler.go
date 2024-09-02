@@ -4,6 +4,8 @@ import (
 	"e-commerce/internal/middleware"
 	"e-commerce/internal/models"
 	"e-commerce/internal/util"
+	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -245,7 +247,7 @@ func (u *HTTPHandler) PlaceOrder(c *gin.Context) {
 
 	// Calculate total and prepare order items
 	var total float64
-	var orderItems []models.OrderItem
+	var orderItems []*models.OrderItem
 	for _, cartItem := range cartItems {
 		product, err := u.Repository.GetProductByID(cartItem.ProductID)
 		if err != nil {
@@ -263,7 +265,7 @@ func (u *HTTPHandler) PlaceOrder(c *gin.Context) {
 		total += float64(cartItem.Quantity) * product.Price
 
 		// Prepare order item
-		orderItems = append(orderItems, models.OrderItem{
+		orderItems = append(orderItems, &models.OrderItem{
 			ProductID: cartItem.ProductID,
 			Quantity:  cartItem.Quantity,
 		})
@@ -408,6 +410,38 @@ func (u *HTTPHandler) ViewOrders(c *gin.Context) {
 		util.Response(c, "Internal server error", 500, err.Error(), nil)
 		return
 	}
+
+	//log every order in the slice
+	for _, order := range orders {
+		log.Println("Order:", order)
+		//get order items
+		orderItems, err := u.Repository.GetOrderItemsByOrderID(order.ID)
+		if err != nil {
+			util.Response(c, "Internal server error", 500, err.Error(), nil)
+			return
+		}
+
+		//log every order item in the slice
+		for _, orderItem := range orderItems {
+			product, err := u.Repository.GetProductByID(orderItem.ProductID)
+			if err != nil {
+				util.Response(c, "Internal server error", 500, err.Error(), nil)
+				return
+			}
+
+			log.Println("Product: ", product)
+
+			order.Items = append(order.Items, &models.OrderItem{
+				Product:  product,
+				Quantity: orderItem.Quantity,
+			})
+
+			fmt.Println("Order item: ", order.Items)
+		}
+
+	}
+
+	fmt.Println("Orders: ", orders)
 
 	util.Response(c, "Orders fetched", 200, gin.H{
 		"orders": orders,
