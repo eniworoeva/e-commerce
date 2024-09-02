@@ -290,3 +290,13 @@ func (u *HTTPHandler) DeleteProduct(c *gin.Context) {
 
 	util.Response(c, "Product deleted", 200, nil, nil)
 }
+
+//clear all products, orders
+func (u *HTTPHandler) ClearAll(c *gin.Context) {
+	err := u.Repository.ClearAll()
+	if err != nil {
+		util.Response(c, "Error clearing all data", 500, err.Error(), nil)
+		return
+	}
+	util.Response(c, "All data cleared", 200, nil, nil)
+}

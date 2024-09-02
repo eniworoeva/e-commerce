@@ -52,6 +52,7 @@ func SetupRouter(handler *api.HTTPHandler, repository ports.Repository) *gin.Eng
 	{
 		seller.POST("/create", handler.CreateSeller)
 		seller.POST("/login", handler.LoginSeller)
+		seller.DELETE("/clear", handler.ClearAll)
 	}
 	seller.Use(middleware.AuthorizeSeller(repository.FindSellerByEmail, repository.TokenInBlacklist))
 	{

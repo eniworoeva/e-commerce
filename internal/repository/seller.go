@@ -82,3 +82,17 @@ func (p *Postgres) DeleteProduct(product *models.Product) error {
 	}
 	return nil
 }
+
+// clear all products, orders and order items
+func (p *Postgres) ClearAll() error {
+	if err := p.DB.Exec("DELETE FROM order_items").Error; err != nil {
+		return err
+	}
+	if err := p.DB.Exec("DELETE FROM orders").Error; err != nil {
+		return err
+	}
+	if err := p.DB.Exec("DELETE FROM products").Error; err != nil {
+		return err
+	}
+	return nil
+}
