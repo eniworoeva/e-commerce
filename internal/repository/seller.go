@@ -49,9 +49,15 @@ func (p *Postgres) GetProductsBySellerID(sellerID uint, products *[]models.Produ
 	return p.DB.Where("seller_id = ?", sellerID).Find(products).Error
 }
 
+// GetOrdersByProductID retrieves orders associated with a specific product ID,
+// including the related order items and products.
 func (p *Postgres) GetOrdersByProductID(productID uint, orders *[]models.Order) error {
-	return p.DB.Joins("JOIN order_items ON order_items.order_id = orders.id").
-		Where("order_items.product_id = ?", productID).Find(orders).Error
+	return p.DB.
+		Preload("Items").         // Preload the OrderItems related to the order
+		Preload("Items.Product"). // Preload the associated Product for each OrderItem
+		Joins("JOIN order_items ON orders.id = order_items.order_id").
+		Where("order_items.product_id = ?", productID).
+		Find(orders).Error
 }
 
 func (p *Postgres) GetOrderByID(orderID uint) (*models.Order, error) {

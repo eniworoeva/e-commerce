@@ -152,11 +152,11 @@ func (p *Postgres) GetCartItemByProductID(productID uint) (*models.IndividualIte
 	return cart, nil
 }
 
-func (p *Postgres) GetOrderItemsByOrderID(orderID uint) ([]*models.IndividualItemInCart, error) {
-	var cartItems []*models.IndividualItemInCart
+func (p *Postgres) GetOrderItemsByOrderID(orderID uint) ([]*models.OrderItem, error) {
+	var orderDetails []*models.OrderItem
 
-	if err := p.DB.Where("order_id = ?", orderID).Find(&cartItems).Error; err != nil {
+	if err := p.DB.Preload("Product").Where("order_id = ?", orderID).Find(&orderDetails).Error; err != nil {
 		return nil, err
 	}
-	return cartItems, nil
+	return orderDetails, nil
 }
