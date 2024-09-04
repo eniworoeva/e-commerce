@@ -29,5 +29,5 @@ type Repository interface {
 	UpdateOrder(order *models.Order) error
 	DeleteProduct(product *models.Product) error
 	GetOrderItemsByOrderID(orderID uint) ([]*models.OrderItem, error)
-	ClearAll() error 
+	ClearAll() error
 }

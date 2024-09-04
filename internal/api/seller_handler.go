@@ -189,7 +189,7 @@ func (u *HTTPHandler) AcceptOrder(c *gin.Context) {
 	}
 
 	//check if order is already accepted
-	if order.Status != "ACCEPTED" {
+	if order.Status == "ACCEPTED" {
 		util.Response(c, "Order already accepted", 400, nil, nil)
 		return
 	}
@@ -233,7 +233,7 @@ func (u *HTTPHandler) DeclineOrder(c *gin.Context) {
 	}
 
 	//check if order is already declined
-	if order.Status != "DECLINED" {
+	if order.Status == "DECLINED" {
 		util.Response(c, "Order already declined", 400, nil, nil)
 		return
 	}
@@ -291,7 +291,7 @@ func (u *HTTPHandler) DeleteProduct(c *gin.Context) {
 	util.Response(c, "Product deleted", 200, nil, nil)
 }
 
-//clear all products, orders
+// clear all products, orders
 func (u *HTTPHandler) ClearAll(c *gin.Context) {
 	err := u.Repository.ClearAll()
 	if err != nil {
